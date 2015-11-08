@@ -1,0 +1,55 @@
+<!--
+Browser Editor v1.0, Plugin that allows editing html file in the browser.
+Copyright (C) 2015,  Marcin Banaszak, http://www.marcinbanaszak.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish copies of the Software, and to permit 
+persons to whom the Software is furnished to do so, subject to the following 
+conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+<div id="editor-toolbox-handle" class="flexRow">
+	<div>
+		<img src="editor/img/move.png">
+	</div>
+	<span id="editor-tool-desc">underline</span>
+</div>
+<div>
+	<div class="editor-tool" data-editor_action="bold" data-editor-tag="b" title="bold">
+		<img src="editor/img/bold.png" data-active="editor/img/bold_over.png" data-orig="editor/img/bold.png">
+	</div>
+	<div class="editor-tool" data-editor_action="italic" data-editor-tag="i" title="italic">
+		<img src="editor/img/italic.png" data-active="editor/img/italic_over.png" data-orig="editor/img/italic.png">
+	</div>
+	<div class="editor-tool" data-editor_action="underline" data-editor-tag="u" title="underline">
+		<img src="editor/img/underline.png" data-active="editor/img/underline_over.png" data-orig="editor/img/underline.png">
+	</div>
+	<div class="editor-tool editor-link-tool" data-editor_action="createLink" title="link">
+		<img src="editor/img/link.png" data-active="editor/img/link_over.png" data-orig="editor/img/link.png">
+	</div>
+	<div id="editor-link-input">
+		<input type="text" value="" placeholder="Type link here"><div id="editor-add-link" data-editor_action="createLink" class="editor-link-btn"></div><div id="editor-hide-link" class="editor-link-btn"></div>
+	</div>
+	<div class="editor-tool editor-link-tool" data-editor_action="unlink" data-editor-tag="a" title="unlink">
+		<img src="editor/img/unlink.png" data-active="editor/img/unlink_over.png" data-orig="editor/img/unlink.png">
+	</div>
+	<div class="editor-tool" data-editor_action="undo" title="undo">
+		<img src="editor/img/undo.png" data-active="editor/img/undo_over.png" data-orig="editor/img/undo.png">
+	</div>
+	<div class="editor-tool" data-editor_action="redo" title="redo">
+		<img src="editor/img/redo.png" data-active="editor/img/redo_over.png" data-orig="editor/img/redo.png">
+	</div>
+</div>

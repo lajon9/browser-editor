@@ -1,0 +1,245 @@
+/**
+Browser Editor v1.0, Plugin that allows editing html file in the browser.
+Copyright (C) 2015,  Marcin Banaszak, http://www.marcinbanaszak.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish copies of the Software, and to permit 
+persons to whom the Software is furnished to do so, subject to the following 
+conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+**/
+
+[contenteditable="true"] {outline: 1px dashed #CCC; cursor: auto;}
+[contenteditable="true"]:hover {outline: 1px dashed #0090D2; }
+[contenteditable="true"]::selection, #editor-selection{
+    background-color:#04aeda;
+    color: #fff;
+}
+[contenteditable="true"]::-moz-selection, #editor-selection{
+    background-color:#04aeda;
+    color: #fff;
+}
+.editor-btn-ignition {
+	position: fixed;
+	top: 10px;
+	left: 10px;
+	z-index: 9999;
+	background-repeat: no-repeat;
+	background-size: 100%;
+	width: 60px;
+	height: 60px;
+	cursor: pointer;
+	opacity: .9;
+}
+.editor-btn-ignition:hover {
+	width: 64px;
+	height: 64px;
+	left: 8px;
+	top: 8px;
+}
+#editor-btn-start {
+	background-image: url(../editor/img/pen.png);
+}
+#editor-btn-save {
+	background-image: url(../editor/img/save.png);
+	display: none;
+}
+#editor-btn-exit {
+	left: 80px;
+	background-image: url(../editor/img/cross.png);
+	display: none;
+}
+#editor-btn-exit:hover {
+	left: 78px;
+}
+#editor-message {
+	width: 360px;
+	height: 175px;
+	background-color: #fff;
+	position: fixed;
+	left: 50%;
+	top: 100px;
+	z-index: 9999;
+	margin-left: -180px;
+	padding: 15px;
+	border: 2px solid #04aeda;
+	display: none;
+	color: #000;
+	background-repeat: no-repeat;
+	background-position: 50% 90%;
+	background-size: 20%;
+	overflow-wrap: break-word;
+}
+#editor-message.success {
+	background-image: url(../editor/img/tick.png);
+}
+#editor-message.error {
+	background-image: url(../editor/img/cross.png);
+}
+
+/*Toolbox*/
+#editor-toolbox {
+	position: fixed;
+	width: 40px;
+	background-color: #eee;
+	opacity: .9;
+	top: 150px;
+	left: 0px;
+	z-index: 9999;
+	display: none;
+}
+#editor-toolbox-handle {
+	height: 37px;
+	width: 100%;
+	background-color: #04aeda;
+    border: 1px solid #eee;
+    padding: 10px 0;
+}
+#editor-toolbox-handle:hover {
+	cursor: move;
+}
+#editor-toolbox-handle div {
+	margin: auto;
+	width: 15px;
+}
+#editor-toolbox-handle div img {
+	width: 100%;
+}
+#editor-toolbox.ui-draggable-dragging {
+	opacity: .6;
+}
+#editor-tool-desc {
+	position: absolute;
+	top: 0;
+    left: 40px;
+    width: 80px;
+    background-color: #fff;
+    height: 34px;
+    border: 1px solid #eee;
+    border-left: none;
+    line-height: 30px;
+    display: none;
+}
+.editor-tool {
+	margin: auto;
+	height: 40px;
+}
+.editor-tool img {
+	width: 100%;
+	padding: 10px;
+}
+.editor-tool.activated:hover img {
+	cursor: pointer;
+	background-color: #04aeda;
+	border-left: 1px solid #eee;
+	border-right: 1px solid #eee;
+}
+.editor-tool:last-child {
+	height: 39px;
+}
+
+#editor-link-input {
+	position: absolute;
+    top: 0px;
+    left: 40px;
+    display: none;
+    min-width: 240px;
+}
+#editor-link-input.active {
+	display: block;
+}
+#editor-link-input input {
+    font-size: 13px;
+    outline: 0;
+    text-align: left;
+    padding: 10px;
+	float: left;
+	background-color: #fff;
+	z-index: 5;
+	border: none;
+}
+.editor-link-btn {
+	background-image: url(../editor/img/tick.png);
+	background-repeat: no-repeat;
+	background-size: 90%;
+    background-position: 50% 50%;
+    z-index: 6;
+    width: 100%;
+    max-width: 36px;
+    height: 36px;
+    background-color: #04aeda;
+    float: left;
+    border-left: none;
+	cursor: pointer;
+}
+.editor-link-btn:hover {
+	background-size: 100%;
+}
+#editor-add-link {
+	background-image: url(../editor/img/tick.png);
+}
+#editor-hide-link {
+	background-image: url(../editor/img/cross.png);
+	-webkit-border-top-right-radius: 3px;
+	-moz-border-top-right-radius: 3px;
+    border-top-right-radius: 3px;
+    -webkit-border-bottom-right-radius: 3px;
+	-moz-border-bottom-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+/*Tooltip*/
+.editor-tooltip {
+	position: absolute;
+	padding: 10px;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+	z-index: 5;
+	display: none;
+	background-color: #fff;
+	border: 1px solid #ccc;
+	-webkit-box-shadow: 0px 0px 10px 0px #ccc;
+	-moz-box-shadow: 0px 0px 10px 0px #ccc;
+	box-shadow: 0px 0px 10px 0px #ccc;
+	z-index: 5;
+	width: 100%;
+	left: 50%;
+}
+.editor-tooltip-arrow {
+	border-style: solid;
+	border-width: 10px;
+	position: absolute;
+	z-index: 4;
+	width: 0;
+	height: 0;
+	font-size: 0;
+	line-height: 0px;
+	display: none;
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+	border-top-color: #2f2f2f;
+	border-bottom: none;
+}
+.editor-tooltip-exit {
+	background-image: url(../editor/img/cross.png);
+	background-repeat: no-repeat;
+	background-size: 100%;
+	position: absolute;
+	right: -10px;
+	top: -10px;
+	height: 20px;
+	width: 20px;
+	cursor: pointer;
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Browser-Editor",
+  "version": "1.0.0",
+  "description": "Plugin that allows editing html file in the browser.",
+  "dependencies": {
+    "express": "latest",
+    "socket.io": "^1.3.7"
+  },
+  "author": "Marcin Banaszak"
+}
