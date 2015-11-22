@@ -1,6 +1,7 @@
 /**
 Browser Editor v1.0, Plugin that allows editing html file in the browser.
-Copyright (C) 2015,  Marcin Banaszak, http://www.marcinbanaszak.com
+Copyright (C) 2015,  Marcin Banaszak, http://www.marcinbanaszak.com,
+https://github.com/lajon9/browser-editor
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,15 +31,22 @@ var fs      = require('fs');
 var io      = require('socket.io')(http);
 
 console.log("Initiating Editor Plugin...\n");
-console.log("Run http://localhost:9000 in your browser!\n")
 
 app.use(express.static(process.cwd() + '/'));
 app.get('/',function (req,res) {
-  res.sendFile(path.join(__dirname+'/index.html'));
+    res.sendFile(path.join(__dirname+'/index.html'));
 });
 
 io.sockets.on('connection', function (socket) {
-    console.log('Socket made connection.');
+
+    if (Object.keys(socket.adapter.rooms).length > 1) {//disconnect if one socket connected already
+        console.log('Editor is already open!\n');
+        socket.emit("socketConnection", false, "Editor is already open!")
+        socket.disconnect()
+    } else {
+        console.log('Socket made connection.');
+        socket.emit("socketConnection", true, "Opening Editor!")
+    }
 
     socket.on('htmlData', function (htmlContent, path, src){
         console.log(src);

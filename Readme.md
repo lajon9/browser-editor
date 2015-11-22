@@ -64,7 +64,11 @@ add above to each html element you want to edit
 ```
 data-editable="click"
 ```
-add above  attribute additionally to elements that have click events attached
+add above attribute additionally to elements that have click events attached
+```
+data-editable_html="click"
+```
+add above attribute additionally to elements that have contenteditable="false" and data-editable="click" attributes in order to include html tags in the tooltip
 
 
 - In Command Line or Terminal navigate to the path of your application and run:
