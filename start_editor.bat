@@ -1,4 +1,5 @@
-start chrome.exe --profile-directory="Default" --app="data:text/html,<html><body><script>window.moveTo(0,0);window.resizeTo(2000,2000);window.location='http://localhost:9000';</script></body></html>"
+call npm install
+start chrome.exe http://localhost:9000 
 @echo off
 
 cd /d "%~dp0"
