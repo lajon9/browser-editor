@@ -39,15 +39,6 @@ app.get('/',function (req,res) {
 
 io.sockets.on('connection', function (socket) {
 
-    if (Object.keys(socket.adapter.rooms).length > 1) {//disconnect if one socket connected already
-        console.log('Editor is already open!\n');
-        socket.emit("socketConnection", false, "Editor is already open!")
-        socket.disconnect()
-    } else {
-        console.log('Socket made connection.');
-        socket.emit("socketConnection", true, "Opening Editor!")
-    }
-
     socket.on('htmlData', function (htmlContent, path, src){
         console.log(src);
         updateFile(htmlContent, path, src);
@@ -60,9 +51,28 @@ io.sockets.on('connection', function (socket) {
         if (contentsArray.length) {
             console.log("\nIMPORTANT:\n\nChanges have been made to the bellow files:");
             console.log(contentsArray + "\n");
+            console.log("Make sure to notify the 'Programming' department about the changes made.")
         }
     });
 });
+
+var getFiles = function(dir, files_){
+    files_ = files_ || [];
+    var files = fs.readdirSync(dir);
+    for (var i in files){
+        var name = dir + '/' + files[i];
+        if (fs.statSync(name).isDirectory()){
+            getFiles(name, files_);
+        } else {
+            if (name.substring(name.indexOf("."), name.length) == ".png") {
+                files_.push(name);
+            } else if (name.substring(name.indexOf("."), name.length) == ".jpg") {
+                files_.push(name);
+            }
+        }
+    }
+    return files_;
+}
 
 var updateFile = function(content, path, src){
     if (path == "") {
@@ -98,6 +108,7 @@ var isInArray = function (value, array) {
 
 http.listen(port);
 http.once('error', function(err) {
+    console.log(err)
     if (err.code === 'EADDRINUSE') {
         console.log("It looks like the port: " + port + " is taken. \nChange the port for Browser-Editor Plugin or close the application that is running on port: " + port + " and relaunch Browser-Editor again.")
         throw err;

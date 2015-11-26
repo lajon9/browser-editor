@@ -21,11 +21,10 @@ OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 **/
-
 var E = {
 	init: false,//initialisation
 	active: false,//editor initialised - editing activation
-	wasHereActivated: function(){//check if editor was activated in this location already
+	wasHereActivated: function(){
 		if ($("#editor").hasClass("launched")) {
 			return true;
 		} else {
@@ -34,7 +33,9 @@ var E = {
 	},
 	selectedText: {},
 	editableLength: 0,//initial amount of editable objects including the duplicates
+	excludeObj: [],
 	editBtns: ["editor-btn-start", "editor-btn-save", "editor-btn-exit"],
+	imagesObjects: ["editor-images-handle", "editor-images-desc", "editor-images-wrapper"],
 	on: function(){//run editor only from node.js
 		if (window.location.pathname == "/" && window.location.port == "9000") {
 			return true;
@@ -53,49 +54,48 @@ var E = {
 			$.getScript( "socket.io/socket.io.js" )
 				.done(function( script, textStatus ) {
 					// E.popupMessage("success", "SCRIPT LOADED", "Socket.io has been loaded.", 2500);
-					E.activate(settings);
+					E.activate.init(settings);
 				}).fail(function( jqxhr, settings, exception ) {
 					E.popupMessage("error", "SCRIPT ERROR", "Triggered ajaxError handler.", 2500);
 				}
 			);
 		} else {
-			E.activate(settings);
+			E.activate.init(settings);
 		}
 	},
-	activate: function(content){
-		if (E.selectedText) E.selectedText = {};//clear selection object for each new content
-		if (E.init) {
-			E.resetEditor();//reset editor for each new content if initialised already
-		}
+	activate: {
+		init: function(content){
+			if (E.selectedText) E.selectedText = {};//clear selection object for each new content
+			if (E.init) {
+				E.resetEditor.defaultFunc();//reset editor for each new content if initialised already
+			}
 
-		if (!$("[contenteditable]").length && $("#editor-btn-start").length) {
-			$(".editor-btn-ignition").hide();
-		} else {
-			E.socket().on("socketConnection" , function(connection, message){
-				if (connection) {
-					if (!$("#editor-htmlContent").length) {
-						$("body").css("position", "relative")
-						E.createEditorObj("body", "editor");
-						E.createEditorObj("#editor", "editor-htmlContent").hide();
-					}
-
-					$("#editor-htmlContent").empty().load(content, function (responseText, textStatus, XMLHttpRequest) {
-					    if (textStatus == "success") {
-					    	$("#editor").removeClass("launched");
-							E.editableLength = $("[contenteditable]").length;
-					    	E.markText();
-					    	if (!E.init) {
-					    		E.manualEditor();
-					    		E.init = true;
-					    	}
-					    }
-					});
-				} else {
+			if (!$("[contenteditable]").length && $("#editor-btn-start").length) {
+				$(".editor-btn-ignition").hide();
+			} else {
+				if (!$("#editor-htmlContent").length) {
+					$("body").css("position", "relative")
 					E.createEditorObj("body", "editor");
-					E.popupMessage("error", "CONNECTION ERROR", message, 10000);
+					E.createEditorObj("#editor", "editor-htmlContent").hide();
 				}
-			});
-		}
+
+				$("#editor-htmlContent").empty().load(content, function (responseText, textStatus, XMLHttpRequest) {
+				    if (textStatus == "success") {
+				    	$("#editor").removeClass("launched");
+						E.editableLength = $(E.currentEditableObj().selectedOnly).length;
+				    	E.markText();
+				    	
+				    	if (!E.init) {
+				    		E.manualEditor.init();
+				    		E.init = true;
+				    	}
+
+				    	E.extend(E.activate.services);
+				    }
+				});
+			}
+		},
+		services: []
 	},
 	selector: {
 		savedSelection: {},
@@ -202,7 +202,7 @@ var E = {
 		}
 	},
 	makeEditable: function(editable){ //enable or disable editing for contenteditable elements
-		$("[contenteditable]").each(function(){
+		$(E.currentEditableObj().trueOnly).each(function(){
 			if (editable) {
 				if ($(this).data("editable") == "click") {
 					if (!$(this).hasClass("editor-tolltip-on")) {
@@ -219,17 +219,22 @@ var E = {
 			}
 		});
 	},
-	resetEditor: function(hideAll){
-		E.makeEditable(false);
-		if (!hideAll) $("#editor-btn-start").fadeIn();
-		$("#editor-btn-save, #editor-btn-exit, #editor-toolbox").fadeOut();
+	resetEditor: {
+		defaultFunc: function(hideAll) {
+			E.makeEditable(false);
+			if (!hideAll) $("#editor-btn-start").fadeIn();
+			$("#editor-btn-save, #editor-btn-exit, #editor-toolbox").fadeOut();
 
-		E.clearTooltips();
-		E.changeBtnsState($("img", ".editor-tool"), "orig", false);
+			E.clearTooltips();
+			E.changeBtnsState($("img", ".editor-tool"), "orig", false);
+
+			E.extend(this.services);
+		},
+		services: []
 	},
 	markText: function(){//add data-edit to each editable object
-		var counter = 0
-		$("[contenteditable]").each(function(index){
+		var counter = 0;
+		$(E.currentEditableObj().selectedOnly).each(function(index){
 			if (index > E.editableLength/2-1) {//half amount of "this"
 				$(this).data("edit", counter+1);
 				counter++
@@ -238,36 +243,42 @@ var E = {
 			}
 		});
 	},
-	manualEditor: function() {
+	manualEditor: {
+		init: function(){
 		
-		//create buttons for screen editing
-		if ($("[contenteditable]").length && !$("#editor-btn-start").length) {
-			E.createObjects("#editor", E.editBtns, "editor-btn-ignition");
-		} else {
-			$("#editor-btn-start").show();
-		}
+			//create buttons for screen editing
+			if ($("[contenteditable]").length && !$("#editor-btn-start").length) {
+				E.createObjects("#editor", E.editBtns, "editor-btn-ignition");
+			} else {
+				$("#editor-btn-start").show();
+			}
 
-		//click events for each editor button
-		$(".editor-btn-ignition").click(function(){
-			if ($(this).attr("id") == "editor-btn-start"){
-				E.makeEditable(true);
-				E.selector.selectionFor($("[contenteditable]:not([data-editable])"));
-				$(this).fadeOut();
-				$("#editor-btn-save, #editor-btn-exit, #editor-toolbox").fadeIn();
-				
-				E.pasteNoStyle($("[contenteditable]"));
-				E.detectChange($("[contenteditable]"));
-				
-				$("[contenteditable]").keypress(function(e) {//fix for wrapping <br> tag into <div> on hit Enter
-					if(e.which == 13) { 
-						document.execCommand('insertHTML', false, '<br><br>');
-						return false; 
-					}
-				});
-				$("#editor").addClass("launched")
-			} else {//save to file here
-				E.resetEditor();
-				if ($(this).attr("id") == "editor-btn-save") {//saving event
+			//click events for each editor button
+			$(".editor-btn-ignition").click(function(){
+				if ($(this).attr("id") == "editor-btn-start"){
+					E.makeEditable(true);
+					E.selector.selectionFor($("[contenteditable]:not([data-editable])"));
+					$(this).fadeOut();
+					$("#editor-btn-save, #editor-btn-exit, #editor-toolbox").fadeIn();
+					
+					//add functionalities on start by add the methods to services array of this object
+					E.extend(E.manualEditor.services);
+
+					E.pasteNoStyle($("[contenteditable]"));//chameleon
+					E.detectChange.run($("[contenteditable]"));
+					
+					$("[contenteditable]").keypress(function(e) {//fix for wrapping <br> tag into div on hit Enter
+						if(e.which == 13) { 
+							document.execCommand('insertHTML', false, '<br><br>');
+							return false; 
+						}
+					});
+					$("#editor").addClass("launched")
+				} else if ($(this).attr("id") == "editor-btn-exit"){//chameleon
+					E.resetEditor.defaultFunc();
+				} else if ($(this).attr("id") == "editor-btn-save"){//save to file here
+					E.resetEditor.defaultFunc();
+
 					if (E.settings.path == "") {
 				        var loadingPath = E.settings.src;
 				    } else {
@@ -280,36 +291,34 @@ var E = {
 					    }
 					});
 				}
-			}
-		});
+			});
 
-		//create a toolbox and load its content from html document
-		E.createToolbox();
+			//create a toolbox and load its content from html document
+			E.createToolbox();
 
-		//get message from socket.io if the saving was successful
-		E.socket().on("savingStatus", function (status, message){
-			if (status == "SUCCESS") {
-				E.popupMessage(status.toLowerCase(), status, message, 3000);
-			} else {
-				E.popupMessage(status.toLowerCase(), status, JSON.stringify(message), 3000);
-			}
-		});
+			//get message from socket.io if the saving was successful
+			E.socket().on("savingStatus", function (status, message){
+				if (status == "SUCCESS") {
+					E.popupMessage(status.toLowerCase(), status, message, 3000);
+				} else {
+					E.popupMessage(status.toLowerCase(), status, JSON.stringify(message), 3000);
+				}
+			});
 
-		//show hide editor on "Ctrl+E"
-		E.activateKey($(document), 69, function(){
-			if ($("#editor-btn-start").css("display") == "none" && $("#editor-btn-save, #editor-btn-exit").css("display") == "none") {
-	    		$("#editor-btn-start").show();
-	    	} else {
-	    		$(".editor-btn-ignition, #editor-toolbox").hide();
-	    		E.resetEditor(true);
-	    		window.getSelection().removeAllRanges();
-	    	}
-		});
-
-		//paste text from word document as a plain text
-		//clipboardData with prompt fallback when browser doesn't support
+			//show hide editor on "Ctrl+E"
+			E.activateKey($(document), 69, function(){
+				if ($("#editor-btn-start").css("display") == "none" && $("#editor-btn-save, #editor-btn-exit").css("display") == "none") {
+		    		$("#editor-btn-start").show();
+		    	} else {
+		    		$(".editor-btn-ignition, #editor-toolbox").hide();
+		    		E.resetEditor.defaultFunc(true);
+		    		window.getSelection().removeAllRanges();
+		    	}
+			});
+		},
+		services: []
 	},
-	//update the duplicate content of the screen and send it to the server with socket.io and save that data to file
+	//paste text from word document as a plain text
 	pasteNoStyle: function($obj){
 		if (!E.wasHereActivated()) {
 			$obj.on('paste',function(e) {
@@ -319,9 +328,11 @@ var E = {
 			});
 		}
 	},
+	//update the duplicate content of the screen and send it to the server with socket.io and save that data to file
 	saveToFile: function(){
 		var isHtmlChanged = false;
-		$("[contenteditable])").each(function(index){
+		
+		$(E.currentEditableObj().selectedOnly).each(function(index){
 			if (index > E.editableLength/2-1) {
 				if (isHtmlChanged) {//send data to be saved
 					E.socket().emit("htmlData", $("#editor-htmlContent").html(), E.settings.path, E.settings.src);
@@ -331,11 +342,16 @@ var E = {
 				return false;
 			} else {//check for changes here
 				if ($(this).html() !== $("#editor-htmlContent [contenteditable]").eq($(this).data("edit")-1).html()) {
+					// E.debug($(this))
 					isHtmlChanged = true;
 					$("#editor-htmlContent [contenteditable]").eq($(this).data("edit") - 1).html($(this).html());
 				}
 			}
 		});
+	},
+	debug: function($obj){
+		console.log($obj.html())
+		console.log($("#editor-htmlContent [contenteditable]").eq($obj.data("edit")-1).html())
 	},
 	createToolbox: function(){
 
@@ -535,7 +551,7 @@ var E = {
 			}
 			
 			E.selector.selectionFor($(".editor-tooltip" + objClass), $element.data("editable"));
-			E.detectChange($(".editor-tooltip" + objClass + "[contenteditable]"));
+			E.detectChange.run($(".editor-tooltip" + objClass + "[contenteditable]"));
 			$(".editor-tooltip-exit").click(function(e){
 				e.stopPropagation();
 				$(".editor-tooltip-arrow" + $(this).parent().data("obj")).remove();
@@ -548,32 +564,90 @@ var E = {
 		$(".editor-tooltip, .editor-tooltip-arrow").remove();
 		$(".editor-tolltip-on").removeClass("editor-tolltip-on");
 	},
-	detectChange: function($obj){
-		var before = "", 
-			textChanged = "";
-
-		//stop bubbling click events on tooltip that would inherit the event from its parent
-		$obj.on('click', function(e) {
-			e.stopPropagation();
-		});
-
-		$obj.on('focus', function() {
-			before = $(this).html();
-		}).on('blur keyup paste', function() { 
-			if (before != $(this).html() || before.substring(0, textChanged.length) != textChanged) { 
-				$(this).trigger('change');
+	detectChange: {
+		run: function($obj, condition){
+			var before = "", 
+				textChanged = "";
+			
+			if (!E.location.allow()){
+				this.preventBubble($obj);
 			}
-		});
 
-		$obj.on('change', function() {
-			before = $(this).html();
-			if ($(this).data("obj")){//detect change in tooltip and apply it to the relative element
-				textChanged = $(this).html().substring(0, $(this).html().indexOf('<div class="editor-tooltip-exit" contenteditable="false">'));
-				if ($(this).data("obj") == $("[contenteditable]:data('edit')").eq($(this).data("obj") - 1).data("edit")){
-					$("[contenteditable]:data('edit')").eq($(this).data("obj") - 1).html(textChanged);
+			$obj.on('focus', function() {
+				before = $(this).html();
+			}).on('blur keyup paste', function() { 
+				if (before != $(this).html() || before.substring(0, textChanged.length) != textChanged) { 
+					$(this).trigger('change');
+				}
+			});
+
+			$obj.on('change', function() {
+				before = $(this).html();
+				if ($(this).data("obj")){//detect change in tooltip and apply it to the relative element
+					textChanged = $(this).html().substring(0, $(this).html().indexOf('<div class="editor-tooltip-exit" contenteditable="false">'));
+					if ($(this).data("obj") == $("[contenteditable]:data('edit')").eq($(this).data("obj") - 1).data("edit")){
+						$("[contenteditable]:data('edit')").eq($(this).data("obj") - 1).html(textChanged);
+					}
+				} else {
+					E.extend(E.detectChange.conditions, $(this));
+				}
+			});
+		},
+		//stop bubbling click events on tooltip that would inherit the event from its parent - do not use this rule for pop screens
+		preventBubble: function($obj){
+			$obj.on('click', function(e) {
+				e.stopPropagation();
+			});
+		},
+		conditions: []
+	},
+	location: {
+		allow: function(){//return boolean against location
+			for (var i = 0; i < this.conditions.length; i++){
+				if (this.conditions[i]()){
+					var bool = this.conditions[i]();
+					break;
+				} else {
+					continue;
 				}
 			}
-		});
+			return bool;
+		},
+		conditions: []
+	},
+	//get objects in "excludeObj" array and exclude them from [contentediable]
+	currentEditableObj: function(){
+		var allEditableEl = "[contenteditable]",
+			editableEl = "[contenteditable]";
+
+		for (var i = 0; i < E.excludeObj.length; i++){
+			for (var z = 0; z < E.excludeObj[i].length; z++){
+				if (typeof E.excludeObj[i][z] == "string"){
+					var excludeEl = ":not('" + E.excludeObj[i][z] + "')";
+					if (E.excludeObj[i][z+1] == true){ // if set to false do not exclude from making editable
+						var excludeEl = ":not('" + E.excludeObj[i][z] + "')";
+						editableEl =  editableEl + excludeEl;
+					}
+					var excludeEl = ":not('" + E.excludeObj[i][z] + "')";
+					allEditableEl =  allEditableEl + excludeEl;
+				}
+			}
+		}
+		$editableObj = {
+			selectedOnly: $(allEditableEl),
+			trueOnly: $(editableEl)
+		}
+		return $editableObj;//[selected elements editable after exclusion of all elements from "excludeObj", all elements excluding all from "excludeObj" with value "true"]
+	},
+	extend: function(actions, obj){
+		if (actions){
+			for (var i = 0; i < actions.length; i++){
+				if (!actions[i]) {
+					continue;
+				}
+				actions[i](obj);
+			}
+		}
 	},
 	activateKey: function($obj, key, callback) {
 		$obj.keypress(function(e) {

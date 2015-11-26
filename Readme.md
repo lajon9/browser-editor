@@ -79,3 +79,23 @@ Editor by default is setup to run on port 9000.
 Go to your browser and run http://localhost:9000
 #####Note:
 For Windows machines editor contains "start_editor.bat" file that will open Browser-Editor in Chrome automatically.
+
+#####Expand functionality for your app:
+- Possibility to add extra functionality to the Editor without modifying the core Browser-Editor code
+  use "extend" method to add extra functionality
+  Below method can be added to the folowing events:
+```
+	E.activate.services.push(callback)  // add new callback to the activate method - launched on the begining of the application
+```
+
+```
+	E.resetEditor.services.push(callback)  // add new callback to the resetEditor method - launched with the resteEditor method
+```
+
+```
+	E.manualEditor.services.push(callback); // add new callback to the manualEditor method - launched with the editor button on click
+```
+
+```
+	E.detectChange.conditions.push(callback); // add new callback to the detectChange method - create more conditions to detect changes in objects specific for your app
+```
