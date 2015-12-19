@@ -89,6 +89,20 @@ OTHER DEALINGS IN THE SOFTWARE.
 #editor-message.error {
 	background-image: url(../editor/img/cross.png);
 }
+#editor-login-input {
+    font-size: 16px;
+    outline: 0;
+    padding: 10px;
+    z-index: 5;
+    width: 87%;
+    margin-top: 15px;
+    float: left;
+}
+#editor-login-submit {
+	max-width: 42px;
+    height: 42px;
+    margin-top: 15px;
+}
 
 /*Toolbox*/
 #editor-toolbox {
@@ -171,7 +185,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 	z-index: 5;
 	border: none;
 }
-.editor-link-btn {
+.editor-link-btn, .editor-login-btn {
 	background-image: url(../editor/img/tick.png);
 	background-repeat: no-repeat;
 	background-size: 90%;
@@ -185,7 +199,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     border-left: none;
 	cursor: pointer;
 }
-.editor-link-btn:hover {
+.editor-link-btn:hover, .editor-login-btn:hover {
 	background-size: 100%;
 }
 #editor-add-link {

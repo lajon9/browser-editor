@@ -39,6 +39,19 @@ app.get('/',function (req,res) {
 
 io.sockets.on('connection', function (socket) {
 
+    socket.on('logUser', function (data, path, when){
+        var breakline = (when == "init") ? "\r\n\r\n" : "\r\n";
+        fs.appendFile(path, data + breakline, function (err) {
+            
+        });
+    });
+
+    socket.on('logData', function (data, path){
+        fs.appendFile(path, "<div class=\"edit\">" + data + "</div><br>", function (err) {
+            
+        });
+    });
+
     socket.on('htmlData', function (htmlContent, path, src){
         console.log(src);
         updateFile(htmlContent, path, src);
